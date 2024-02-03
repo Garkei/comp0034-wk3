@@ -41,12 +41,34 @@ def get_region(region_noc):
 def add_region():
 
     ev_json = request.get_json()
-    region = event_schema.load(ev_json)
+    region = region_schema.load(ev_json)
     db.session.add(region)
     db.session.commit()
     return {"message": f"Region added with NOC= {region.NOC}"}
 
-@app.delete('/events/<region_noc>')
+@app.patch("/regions/<region_noc>")
+def region_update(region_noc):
+    """Updates changed fields for the event.
+
+    """
+    # Find the event in the database
+    existing_region = db.session.execute(db.select(Region).filter_by(NOC=region_noc)).scalar_one()
+    # Get the updated details from the json sent in the HTTP patch request
+    region_json = request.get_json()
+    # Use Marshmallow to update the existing records with the changes from the json
+    region_updated = region_schema.load(region_json, instance=existing_region, partial=True)
+    # Commit the changes to the database
+    db.session.add(region_updated)
+    db.session.commit()
+    # Return json showing the updated record
+    updated_region = db.session.execute(db.select(Region).filter_by(NOC=region_noc)).scalar_one()
+    result = region_schema.jsonify(updated_region)
+    response = make_response(result, 200)
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@app.delete('/regions/<region_noc>')
 def delete_region(region_noc):
 
     region = db.session.execute(db.select(Region).filter_by(NOC = region_noc)).scalar_one()
