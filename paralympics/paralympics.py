@@ -6,6 +6,8 @@ from paralympics.models import Region, Event
 from paralympics.schemas import RegionSchema, EventSchema
 
 # Flask-Marshmallow Schemas
+#RegionSchema(many=True) is used for handling collections of Region objects, such as lists.
+#RegionSchema() is used for handling a single Region object.
 regions_schema = RegionSchema(many=True)
 region_schema = RegionSchema()
 events_schema = EventSchema(many=True)
